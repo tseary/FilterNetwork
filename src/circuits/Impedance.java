@@ -29,16 +29,9 @@ public class Impedance extends Complex implements ITweakable {
 		super(c);
 	}
 	
-	public void tweak(double factor) {
-		re *= factor;
-		im *= factor;
-		lastTweak = factor;
-	}
+	public void tweak(double factor) {}
 	
-	public void unTweak() {
-		re /= lastTweak;
-		im /= lastTweak;
-	}
+	public void unTweak() {}
 	
 	public static Impedance createOpen() {
 		return new Impedance(Double.POSITIVE_INFINITY, 0d);

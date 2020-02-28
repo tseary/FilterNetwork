@@ -3,6 +3,7 @@ package filter;
 import java.util.ArrayList;
 import java.util.List;
 
+import circuits.Branch;
 import circuits.Impedance;
 import circuits.Reactance;
 
@@ -25,7 +26,12 @@ public class Network {
 	public void addComponent(Impedance z, boolean shunt, boolean tweakable) {
 		components.add(new NetImpedance(z, shunt));
 		if (tweakable) {
-			tweakables.add(z);
+			if (z instanceof Branch) {
+				Branch branch = (Branch)z;
+				tweakables.addAll(((Branch)z).getTweakables());
+			} else {
+				tweakables.add(z);
+			}
 		}
 	}
 	
@@ -71,7 +77,13 @@ public class Network {
 	public List<Impedance> getComponents() {
 		ArrayList<Impedance> zs = new ArrayList<>(components.size());
 		for (NetImpedance comp : components) {
-			zs.add(comp.z);
+			Impedance z = comp.z;
+			if (z instanceof Branch) {
+				Branch branch = (Branch)z;
+				zs.addAll(branch.getImpedances());
+			} else {
+				zs.add(z);
+			}
 		}
 		return zs;
 	}

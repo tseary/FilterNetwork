@@ -18,6 +18,9 @@ public class TweakGroup {
 	/** The currently applied combination. */
 	private int combo = 0;
 	
+	private int upAction = 1,
+			downAction = 2;
+	
 	public TweakGroup() {
 		tweakables = new ArrayList<ITweakable>();
 	}
@@ -41,7 +44,13 @@ public class TweakGroup {
 	 */
 	public boolean nextTweakCombo(double factor) {
 		// Skip combo 0 because that means no tweaks to any component
-		if (++combo >= combinations) combo = 1;
+		if (++combo >= combinations) {
+			combo = 1;
+			
+			// Swap order
+			upAction = 3 - upAction;
+			downAction = 3 - upAction;
+		}
 		
 		// Apply tweaks to all components
 		int comboCopy = combo;

@@ -5,16 +5,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import circuits.Branch;
 import circuits.Capacitor;
 import circuits.Impedance;
 import circuits.Inductor;
 import circuits.Reactance;
 import circuits.Resistor;
+import circuits.SeriesBranch;
 import merit.BandPassEvaluator;
+import merit.BandStopEvaluator;
 import merit.CenterFrequencyEvaluator;
 import merit.IMeritEvaluator;
 import merit.PracticalityEvaluator;
-import merit.TransformerEvaluator;
 
 public class FilterNetworkMain {
 	
@@ -41,14 +43,28 @@ public class FilterNetworkMain {
 		
 		// Create an pi-CLC + pi-LCL network
 		network = new Network();
-		Capacitor C1 = new Capacitor(100e-12d);
+		/*Capacitor C1 = new Capacitor(100e-12d);
 		Inductor L1 = new Inductor(100e-9d);
 		network.addComponent(C1, true);
 		network.addComponent(new Inductor(100e-9d), false);
 		network.addComponent(C1, true);
 		network.addComponent(L1, true);
 		network.addComponent(new Capacitor(100e-12d), false);
-		network.addComponent(L1, true);
+		network.addComponent(L1, true);*/
+		/*Inductor L1 = new Inductor(250e-9d);
+		Capacitor C1 = new Capacitor(131e-12d);
+		network.addComponent(L1, false);
+		network.addComponent(new Capacitor(100e-12d), true);
+		network.addComponent(L1, false);
+		network.addComponent(C1, false);
+		network.addComponent(new Inductor(100e-9d), true);
+		network.addComponent(C1, false);
+		network.addComponent(new Inductor(42e-9d), true);
+		network.addComponent(new Capacitor(820e-12d), true);*/
+		Branch seriesBranch = new SeriesBranch(new Capacitor(100e-12), new Inductor(100e-9));
+		network.addComponent(seriesBranch, true);
+		network.addComponent(new Inductor(100e-9d), true);
+		network.addComponent(new Capacitor(100e-12d), true);
 		
 		// Create a load
 		Impedance load = new Resistor(20d);
@@ -72,10 +88,11 @@ public class FilterNetworkMain {
 		
 		// Iterate
 		evaluators = new ArrayList<IMeritEvaluator>();
-		evaluators.add(new BandPassEvaluator(nominalTestCondition, 0.125d));
-		evaluators.add(new CenterFrequencyEvaluator(nominalTestCondition, 0.3d));
+		evaluators.add(new BandPassEvaluator(nominalTestCondition));
+		// evaluators.add(new CenterFrequencyEvaluator(nominalTestCondition, 0.3d));
 		evaluators.add(new PracticalityEvaluator());
-		evaluators.add(new TransformerEvaluator(nominalTestCondition, new Resistor(200d)));
+		// evaluators.add(new TransformerEvaluator(nominalTestCondition, new Resistor(200d)));
+		evaluators.add(new BandStopEvaluator(new TestCondition(nominalTestCondition, 32.7e6)));
 		
 		iterateDesignMulti(100000);
 		

@@ -40,7 +40,6 @@ public class NetImpedance {
 	}
 	
 	public String getDiagram() {
-		String diagram = "";
 		if (z instanceof Inductor) {
 			return shunt ? " |-UU-| " : " |    3 ";
 		} else if (z instanceof Capacitor) {
