@@ -18,5 +18,10 @@ import filter.Network;
  *
  */
 public interface IMeritEvaluator {
+	/**
+	 * Evaluate the given network and return its merit.
+	 * @param network
+	 * @return
+	 */
 	public double getMerit(Network network);
 }

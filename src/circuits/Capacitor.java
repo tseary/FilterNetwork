@@ -15,6 +15,12 @@ public class Capacitor extends Reactance {
 	@Override
 	public void tweak(double factor) {
 		c *= factor;
+		lastTweak = factor;
+	}
+	
+	@Override
+	public void unTweak() {
+		c /= lastTweak;
 	}
 	
 	@Override
@@ -24,18 +30,19 @@ public class Capacitor extends Reactance {
 	
 	@Override
 	public String toString() {
-		String str = "";
+		String desStr = String.format("C%1$d ", designator);
+		String valStr;
 		if (c >= 1d) {
-			str = String.format("%1$.3f F", c);
+			valStr = String.format("%1$.3f F", c);
 		} else if (c >= 1e-3) {
-			str = String.format("%1$.3f mF", c / 1e-3);
+			valStr = String.format("%1$.3f mF", c / 1e-3);
 		} else if (c >= 1e-6) {
-			str = String.format("%1$.3f uF", c / 1e-6);
+			valStr = String.format("%1$.3f uF", c / 1e-6);
 		} else if (c >= 1e-9) {
-			str = String.format("%1$.3f nF", c / 1e-9);
+			valStr = String.format("%1$.3f nF", c / 1e-9);
 		} else {
-			str = String.format("%1$.3f pF", c / 1e-12);
+			valStr = String.format("%1$.3f pF", c / 1e-12);
 		}
-		return str + " capacitor";
+		return desStr + valStr + " capacitor";
 	}
 }

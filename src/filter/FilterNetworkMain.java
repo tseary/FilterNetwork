@@ -1,7 +1,9 @@
 package filter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import circuits.Capacitor;
 import circuits.Impedance;
@@ -17,6 +19,20 @@ import merit.TransformerEvaluator;
 public class FilterNetworkMain {
 	
 	public static void main(String[] args) {
+		new FilterNetworkMain().doTheThing();
+	}
+	
+	private Network network;
+	
+	List<IMeritEvaluator> evaluators;
+	private Map<IMeritEvaluator, Double> merits;
+	
+	public FilterNetworkMain() {
+		evaluators = new ArrayList<IMeritEvaluator>();
+		merits = new HashMap<IMeritEvaluator, Double>();
+	}
+	
+	public void doTheThing() {
 		
 		final double f0 = 27.12e6;
 		final double span = 2d;
@@ -24,13 +40,15 @@ public class FilterNetworkMain {
 		Impedance line = new Resistor(100d);
 		
 		// Create an pi-CLC + pi-LCL network
-		Network network = new Network();
-		network.addComponent(new Capacitor(100e-12d), true);
+		network = new Network();
+		Capacitor C1 = new Capacitor(100e-12d);
+		Inductor L1 = new Inductor(100e-9d);
+		network.addComponent(C1, true);
 		network.addComponent(new Inductor(100e-9d), false);
-		network.addComponent(new Capacitor(100e-12d), true);
-		network.addComponent(new Inductor(100e-9d), true);
+		network.addComponent(C1, true);
+		network.addComponent(L1, true);
 		network.addComponent(new Capacitor(100e-12d), false);
-		network.addComponent(new Inductor(100e-9d), true);
+		network.addComponent(L1, true);
 		
 		// Create a load
 		Impedance load = new Resistor(20d);
@@ -53,30 +71,33 @@ public class FilterNetworkMain {
 		System.out.println();
 		
 		// Iterate
-		List<IMeritEvaluator> evaluators = new ArrayList<IMeritEvaluator>();
+		evaluators = new ArrayList<IMeritEvaluator>();
 		evaluators.add(new BandPassEvaluator(nominalTestCondition, 0.125d));
 		evaluators.add(new CenterFrequencyEvaluator(nominalTestCondition, 0.3d));
 		evaluators.add(new PracticalityEvaluator());
 		evaluators.add(new TransformerEvaluator(nominalTestCondition, new Resistor(200d)));
 		
-		iterateDesign(network, evaluators);
+		iterateDesignMulti(100000);
 		
 		network.print();
 	}
 	
-	public static void iterateDesign(Network network, List<IMeritEvaluator> evaluators) {
-		List<Impedance> components = network.getComponents();
+	public void iterateDesign(int maxIterations) {
+		
+		List<ITweakable> tweakables = network.getTweakables();
 		
 		// Tweak each component up and down by a small amount.
 		// After each adjustment, check the merit.
 		// If the merit improves, keep the change, otherwise discard the change.
 		// If tweaking every component produces no improvement, reduce the tweak size and continue.
 		
-		double bestMerit = getTotalMerit(network, evaluators);
+		double bestMerit = getTotalMerit();
+		
+		printMerits();
+		
 		double tweakProportion = 0.10d;
 		final double tweakProportionDrop = 0.5d;
 		
-		final int MAX_ITERATIONS = 100000;
 		int iterations = 0;
 		
 		// Keep iterating until the tweak factor is sufficiently small
@@ -91,65 +112,133 @@ public class FilterNetworkMain {
 				// Clear the flag
 				improvement = false;
 				
-				for (int i = 0; i < components.size(); i++) {
+				for (int i = 0; i < tweakables.size(); i++) {
 					// Get the component
-					Impedance comp = components.get(i);
+					ITweakable comp = tweakables.get(i);
 					double newMerit;
 					
 					// Tweak down
 					comp.tweak(1d / tweakFactor);
-					newMerit = getTotalMerit(network, evaluators);
+					newMerit = getTotalMerit();
 					if (newMerit > bestMerit) {
 						// Keep the change
 						bestMerit = newMerit;
 						improvement = true;
 						
 						System.out.println("Improved " + comp + "\tmerit = " + bestMerit);
+						printMerits();
 						
 						continue;	// Go to the next component
 					} else {
 						// Discard the change
-						comp.tweak(tweakFactor);
+						comp.unTweak();
 					}
 					
 					// Tweak up
 					comp.tweak(tweakFactor);
 					
-					newMerit = getTotalMerit(network, evaluators);
+					newMerit = getTotalMerit();
 					if (newMerit > bestMerit) {
 						// Keep the change
 						bestMerit = newMerit;
 						improvement = true;
 						
 						System.out.println("Improved " + comp + "\tmerit = " + bestMerit);
+						printMerits();
 						
 						continue;	// Go to the next component
 					} else {
 						// Discard the change
-						comp.tweak(1d / tweakFactor);
+						comp.unTweak();
 					}
 				}
-			} while (improvement && ++iterations < MAX_ITERATIONS);
+			} while (improvement && ++iterations < maxIterations);
 			
 			// Reduce the tweak size
 			tweakProportion *= tweakProportionDrop;
 			
-		} while (tweakProportion > 0.0000009d && iterations < MAX_ITERATIONS);
+		} while (tweakProportion > 0.0000009d && iterations < maxIterations);
 		
 		System.out.println("Stopped after " + iterations + " iterations.");
 	}
 	
-	public static double getTotalMerit(Network network, List<IMeritEvaluator> evaluators) {
+	public void iterateDesignMulti(int maxIterations) {
+		
+		TweakGroup tweakGroup = new TweakGroup();
+		tweakGroup.addAll(network.getTweakables());
+		
+		// Tweak each component up and down by a small amount.
+		// After each adjustment, check the merit.
+		// If the merit improves, keep the change, otherwise discard the change.
+		// If tweaking every component produces no improvement, reduce the tweak size and continue.
+		
+		double bestMerit = getTotalMerit();
+		
+		printMerits();
+		
+		double tweakProportion = 0.10d;
+		final double tweakProportionDrop = 0.5d;
+		
+		int iterations = 0;
+		
+		// Keep iterating until the tweak factor is sufficiently small
+		do {
+			double tweakFactor = 1d + tweakProportion;
+			
+			System.out.println("tweakPercent = " + tweakProportion);
+			
+			// Keep iterating until no further improvements can be made
+			boolean improvement;
+			do {
+				// Clear the flag
+				improvement = false;
+				
+				boolean moreCombos;
+				do {
+					moreCombos = tweakGroup.nextTweakCombo(tweakFactor);
+					
+					// Test merit
+					double newMerit = getTotalMerit();
+					if (newMerit > bestMerit) {
+						// Keep the change
+						bestMerit = newMerit;
+						improvement = true;
+						
+						printMerits();
+						
+						continue;	// Go to the next combo
+					} else {
+						// Discard the change(s)
+						tweakGroup.unTweakCombo();
+					}
+				} while (moreCombos && ++iterations < maxIterations);
+				
+			} while (improvement && iterations < maxIterations);
+			
+			// Reduce the tweak size
+			tweakProportion *= tweakProportionDrop;
+			
+		} while (tweakProportion > 0.0000009d && iterations < maxIterations);
+		
+		System.out.println("Stopped after " + iterations + " iterations.");
+	}
+	
+	public double getTotalMerit() {
 		double totalMerit = 1d;
 		
 		for (IMeritEvaluator evaluator : evaluators) {
 			double merit = evaluator.getMerit(network);
+			merits.put(evaluator, Double.valueOf(merit));
 			totalMerit *= merit;
-			
-			System.out.println(evaluator.getClass().getName() + " \tmerit = " + merit);
 		}
-		System.out.println();
 		
 		return totalMerit;
+	}
+	
+	public void printMerits() {
+		for (IMeritEvaluator evaluator : evaluators) {
+			System.out.println(evaluator.getClass().getName() + " \tmerit = " + merits.get(evaluator));
+		}
+		System.out.println();
 	}
 }

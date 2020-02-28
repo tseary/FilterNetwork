@@ -9,13 +9,24 @@ import circuits.Reactance;
 public class Network {
 	
 	private List<NetImpedance> components;
+	private List<ITweakable> tweakables;
+	
+	private List<TweakGroup> tweakgroups;
 	
 	public Network() {
 		components = new ArrayList<NetImpedance>();
+		tweakables = new ArrayList<ITweakable>();
 	}
 	
 	public void addComponent(Impedance z, boolean shunt) {
+		addComponent(z, shunt, true);
+	}
+	
+	public void addComponent(Impedance z, boolean shunt, boolean tweakable) {
 		components.add(new NetImpedance(z, shunt));
+		if (tweakable) {
+			tweakables.add(z);
+		}
 	}
 	
 	public AnalysisResult analyse(TestCondition testCondition) {
@@ -63,6 +74,10 @@ public class Network {
 			zs.add(comp.z);
 		}
 		return zs;
+	}
+	
+	public List<ITweakable> getTweakables() {
+		return tweakables;
 	}
 	
 	public void print() {
