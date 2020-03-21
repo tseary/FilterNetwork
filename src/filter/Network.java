@@ -1,7 +1,9 @@
 package filter;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import circuits.Branch;
 import circuits.Impedance;
@@ -10,13 +12,11 @@ import circuits.Reactance;
 public class Network {
 	
 	private List<NetImpedance> components;
-	private List<ITweakable> tweakables;
-	
-	private List<TweakGroup> tweakgroups;
+	private Set<ITweakable> tweakables;
 	
 	public Network() {
 		components = new ArrayList<NetImpedance>();
-		tweakables = new ArrayList<ITweakable>();
+		tweakables = new HashSet<ITweakable>();
 	}
 	
 	public void addComponent(Impedance z, boolean shunt) {
@@ -88,7 +88,7 @@ public class Network {
 		return zs;
 	}
 	
-	public List<ITweakable> getTweakables() {
+	public Set<ITweakable> getTweakables() {
 		return tweakables;
 	}
 	

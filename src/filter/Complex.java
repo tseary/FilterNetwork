@@ -34,7 +34,7 @@ public class Complex implements IComplex {
 	}
 	
 	public Complex quotient(IComplex d) {
-		// Multiple this (numerator) and d (denominator) by the conjugate of d.
+		// Multiply this (numerator) and d (denominator) by the conjugate of d.
 		// This results in a real number on the bottom.
 		// The components of the top are divided by this real number.
 		
@@ -105,7 +105,7 @@ public class Complex implements IComplex {
 		
 		String reStr = String.valueOf(re);
 		
-		String imPrefix = imSign ? (reExists ? " + " : "") : (reExists ? " - " : "-") + "j";
+		String imPrefix = (imSign ? (reExists ? " + " : "") : (reExists ? " - " : "-")) + "j";
 		String imAbs = String.valueOf(Math.abs(myIm));
 		
 		String imStr = imExists ? (imPrefix + imAbs) : "";

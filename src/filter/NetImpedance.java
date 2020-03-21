@@ -41,13 +41,13 @@ public class NetImpedance {
 	
 	public String getDiagram() {
 		if (z instanceof Inductor) {
-			return shunt ? " |-UU-| " : " |    3 ";
+			return shunt ? " |-L--| " : " |    L ";
 		} else if (z instanceof Capacitor) {
-			return shunt ? " |-||-| " : " |    = ";
+			return shunt ? " |-C--| " : " |    C ";
 		} else if (z instanceof Resistor) {
-			return shunt ? " |-ww-| " : " |    < ";
+			return shunt ? " |-R--| " : " |    R ";
 		} else {
-			return shunt ? " |-[]-| " : " |    []";
+			return shunt ? " |-Z--| " : " |    Z ";
 		}
 	}
 }

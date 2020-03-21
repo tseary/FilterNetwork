@@ -10,6 +10,7 @@ import filter.Network;
  * 
  * Merits are multiplicative - if two evaluators are applied to a network and one has 0 merit,
  * then the total merit of the network is zero.
+ * TODO implement and/or combiners
  * 
  * Evaluators should be written with this in mind:
  * If exceeding the specification does not add value, the merit should be clamped at 1.

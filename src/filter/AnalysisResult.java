@@ -24,6 +24,7 @@ public class AnalysisResult {
 		return decibels(transfer.magnitude());
 	}
 	
+	/** Converts voltage gain to decibels. */
 	public static double decibels(double gain) {
 		return 20d * Math.log10(gain);
 	}

@@ -10,14 +10,14 @@ import filter.TestCondition;
  * @author Thomas
  *
  */
-public class TransformerEvaluator implements IMeritEvaluator {
+public class ImpedanceEvaluator implements IMeritEvaluator {
 	
-	private Impedance zInIdeal;
 	private TestCondition testCondition;
+	private Impedance zInIdeal;
 	
-	public TransformerEvaluator(TestCondition testCondition, Impedance inputImpedance) {
-		zInIdeal = inputImpedance;
+	public ImpedanceEvaluator(TestCondition testCondition, Impedance inputImpedance) {
 		this.testCondition = testCondition;
+		this.zInIdeal = inputImpedance;
 	}
 	
 	@Override
@@ -28,10 +28,10 @@ public class TransformerEvaluator implements IMeritEvaluator {
 		Complex ratio = zIn.quotient(zInIdeal);
 		
 		double magnitude = ratio.magnitude();
-		double magnitudeMerit = MeritFunctions.target(magnitude, 1d, 0.10d);
+		double magnitudeMerit = MeritFunctions.targetSharp(magnitude, 1d, 0.10d);
 		
 		double phase = ratio.angle();
-		double phaseMerit = MeritFunctions.target(phase, 0d, Math.PI / 2d);
+		double phaseMerit = MeritFunctions.targetSharp(phase, 0d, Math.PI / 2d);
 		
 		return magnitudeMerit * phaseMerit;
 	}

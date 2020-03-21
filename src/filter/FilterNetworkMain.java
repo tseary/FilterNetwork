@@ -5,18 +5,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import circuits.Branch;
 import circuits.Capacitor;
 import circuits.Impedance;
 import circuits.Inductor;
 import circuits.Reactance;
 import circuits.Resistor;
-import circuits.SeriesBranch;
-import merit.BandPassEvaluator;
-import merit.BandStopEvaluator;
-import merit.CenterFrequencyEvaluator;
 import merit.IMeritEvaluator;
-import merit.PracticalityEvaluator;
+import merit.ImpedanceEvaluator;
 
 public class FilterNetworkMain {
 	
@@ -36,72 +31,78 @@ public class FilterNetworkMain {
 	
 	public void doTheThing() {
 		
-		final double f0 = 27.12e6;
-		final double span = 2d;
+		final double f0 = 1.695e6;
 		
-		Impedance line = new Resistor(100d);
+		// Create the line
+		// Impedance line50 = new Resistor(50d);
 		
-		// Create an pi-CLC + pi-LCL network
+		// Create a lossy 1:1 transformer
 		network = new Network();
-		/*Capacitor C1 = new Capacitor(100e-12d);
-		Inductor L1 = new Inductor(100e-9d);
-		network.addComponent(C1, true);
-		network.addComponent(new Inductor(100e-9d), false);
-		network.addComponent(C1, true);
-		network.addComponent(L1, true);
-		network.addComponent(new Capacitor(100e-12d), false);
-		network.addComponent(L1, true);*/
-		/*Inductor L1 = new Inductor(250e-9d);
-		Capacitor C1 = new Capacitor(131e-12d);
-		network.addComponent(L1, false);
-		network.addComponent(new Capacitor(100e-12d), true);
-		network.addComponent(L1, false);
-		network.addComponent(C1, false);
-		network.addComponent(new Inductor(100e-9d), true);
-		network.addComponent(C1, false);
-		network.addComponent(new Inductor(42e-9d), true);
-		network.addComponent(new Capacitor(820e-12d), true);*/
-		Branch seriesBranch = new SeriesBranch(new Capacitor(100e-12), new Inductor(100e-9));
-		network.addComponent(seriesBranch, true);
-		network.addComponent(new Inductor(100e-9d), true);
-		network.addComponent(new Capacitor(100e-12d), true);
-		
-		// Create a load
-		Impedance load = new Resistor(20d);
-		TestCondition nominalTestCondition = new TestCondition(line, load, f0);
-		System.out.println("Z_load = " + load.toString());
+		Capacitor Cself = new Capacitor(1e-12d);
+		Inductor Lleak = new Inductor(132e-9d);
+		Resistor Rwinding = new Resistor(0.102d);
+		Inductor Lmutual = new Inductor(983e-9d);
+		Resistor Rcore = new Resistor(500d);
+		network.addComponent(Cself, true);
+		network.addComponent(Rwinding, false);
+		network.addComponent(Lleak, false);
+		network.addComponent(Lmutual, true);
+		network.addComponent(Rcore, true);
+		network.addComponent(Lleak, false);
+		network.addComponent(Rwinding, false);
+		network.addComponent(Cself, true);
 		
 		network.print();
 		
-		double center = CenterFrequencyEvaluator.findCenterFrequency(network, nominalTestCondition);
-		System.out.println("center = " + center);
+		// Create test loads
+		Impedance loadShort = new Resistor(1e-3d);
+		Impedance loadOpen = new Resistor(1e6d);
 		
-		// Test the impedance at multiple frequencies
-		for (double f = f0 / span; f <= f0 * span; f *= Math.pow(span, 1 / 10d)) {
-			Reactance.setGlobalFrequency(f);
-			AnalysisResult result = network.analyse(new TestCondition(nominalTestCondition, f));
-			
-			System.out.print((int)f + "\t");
-			System.out.println(result.getGainDecibels());
-		}
-		System.out.println();
+		// Create evaluators
+		TestCondition testShort = new TestCondition(null, loadShort, f0);
+		TestCondition testOpen = new TestCondition(null, loadOpen, f0);
+		final double fHi = f0 + 0.1e6d,
+				fLo = f0 - 0.1e6d;
+		TestCondition testOpenHif = new TestCondition(null, loadOpen, fHi);
+		TestCondition testOpenLof = new TestCondition(null, loadOpen, fLo);
+		
+		Reactance.setGlobalFrequency(f0);
+		Impedance observedZinShort = Impedance.series(new Resistor(0.1023d), new Inductor(248.5e-9d));
+		Impedance observedZinOpen = Impedance.series(new Resistor(11.95d), new Inductor(1117e-9d));
+		Reactance.setGlobalFrequency(fHi);
+		Impedance observedZinOpenHif = Impedance.series(new Resistor(11.95d + 0.7), new Inductor(1117e-9d));
+		Reactance.setGlobalFrequency(fLo);
+		Impedance observedZinOpenLof = Impedance.series(new Resistor(11.95d - 0.7), new Inductor(1117e-9d));
+		
+		evaluators = new ArrayList<IMeritEvaluator>();
+		evaluators.add(new ImpedanceEvaluator(testShort, observedZinShort));
+		evaluators.add(new ImpedanceEvaluator(testOpen, observedZinOpen));
+		evaluators.add(new ImpedanceEvaluator(testOpenHif, observedZinOpenHif));
+		evaluators.add(new ImpedanceEvaluator(testOpenLof, observedZinOpenLof));
 		
 		// Iterate
-		evaluators = new ArrayList<IMeritEvaluator>();
-		evaluators.add(new BandPassEvaluator(nominalTestCondition));
-		// evaluators.add(new CenterFrequencyEvaluator(nominalTestCondition, 0.3d));
-		evaluators.add(new PracticalityEvaluator());
-		// evaluators.add(new TransformerEvaluator(nominalTestCondition, new Resistor(200d)));
-		evaluators.add(new BandStopEvaluator(new TestCondition(nominalTestCondition, 32.7e6)));
-		
 		iterateDesignMulti(100000);
 		
 		network.print();
+		
+		// Extra prints
+		AnalysisResult result;
+		
+		System.out.println();
+		result = network.analyse(testShort);
+		System.out.println("Input Z (shorted secondary) = " + result.getInputImpedance());
+		System.out.println("observedZinShort = " + observedZinShort);
+		
+		System.out.println();
+		result = network.analyse(testOpen);
+		System.out.println("Input Z (open secondary) = " + result.getInputImpedance());
+		System.out.println("observedZinOpen = " + observedZinOpen);
 	}
 	
 	public void iterateDesign(int maxIterations) {
 		
-		List<ITweakable> tweakables = network.getTweakables();
+		List<ITweakable> tweakables = new ArrayList<ITweakable>();
+		tweakables.addAll(network.getTweakables());
 		
 		// Tweak each component up and down by a small amount.
 		// After each adjustment, check the merit.
