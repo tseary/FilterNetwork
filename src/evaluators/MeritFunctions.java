@@ -1,4 +1,4 @@
-package merit;
+package evaluators;
 
 public final class MeritFunctions {
 	private MeritFunctions() {}

@@ -36,7 +36,7 @@ public class NetImpedance {
 	
 	@Override
 	public String toString() {
-		return getDiagram() + (shunt ? "shunt" : "series") + "\t" + z.toString();
+		return getDiagram() + (shunt ? "shunt  " : "series ") + z.toString();
 	}
 	
 	public String getDiagram() {

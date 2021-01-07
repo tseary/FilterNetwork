@@ -1,4 +1,4 @@
-package merit;
+package evaluators;
 
 import circuits.Impedance;
 import filter.AnalysisResult;

@@ -103,10 +103,12 @@ public class Complex implements IComplex {
 				imExists = myIm != 0d;
 		boolean imSign = myIm >= 0d;
 		
-		String reStr = String.valueOf(re);
+		// String reStr = String.valueOf(re);
+		String reStr = String.format("%.3f", re);
 		
 		String imPrefix = (imSign ? (reExists ? " + " : "") : (reExists ? " - " : "-")) + "j";
-		String imAbs = String.valueOf(Math.abs(myIm));
+		// String imAbs = String.valueOf(Math.abs(myIm));
+		String imAbs = String.format("%.3f", Math.abs(myIm));
 		
 		String imStr = imExists ? (imPrefix + imAbs) : "";
 		

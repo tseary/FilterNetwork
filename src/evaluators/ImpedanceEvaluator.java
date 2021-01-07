@@ -1,4 +1,4 @@
-package merit;
+package evaluators;
 
 import circuits.Impedance;
 import filter.AnalysisResult;
@@ -36,4 +36,10 @@ public class ImpedanceEvaluator implements IMeritEvaluator {
 		return magnitudeMerit * phaseMerit;
 	}
 	
+	@Override
+	public String toString() {
+		return this.getClass().getSimpleName() +
+				"[" + testCondition.toString() +
+				", ideal Zin = " + zInIdeal.toString() + "]";
+	}
 }

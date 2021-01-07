@@ -10,8 +10,8 @@ import circuits.Impedance;
 import circuits.Inductor;
 import circuits.Reactance;
 import circuits.Resistor;
-import merit.IMeritEvaluator;
-import merit.ImpedanceEvaluator;
+import evaluators.IMeritEvaluator;
+import evaluators.ImpedanceEvaluator;
 
 public class FilterNetworkMain {
 	
@@ -38,10 +38,10 @@ public class FilterNetworkMain {
 		
 		// Create a lossy 1:1 transformer
 		network = new Network();
-		Capacitor Cself = new Capacitor(1e-12d);
+		Capacitor Cself = new Capacitor(10e-12d);
 		Inductor Lleak = new Inductor(132e-9d);
 		Resistor Rwinding = new Resistor(0.102d);
-		Inductor Lmutual = new Inductor(983e-9d);
+		Inductor Lmutual = new Inductor(985e-9d);
 		Resistor Rcore = new Resistor(500d);
 		network.addComponent(Cself, true);
 		network.addComponent(Rwinding, false);
@@ -247,6 +247,8 @@ public class FilterNetworkMain {
 		for (IMeritEvaluator evaluator : evaluators) {
 			double merit = evaluator.getMerit(network);
 			merits.put(evaluator, Double.valueOf(merit));
+			
+			// Multiplicative
 			totalMerit *= merit;
 		}
 		
@@ -255,7 +257,8 @@ public class FilterNetworkMain {
 	
 	public void printMerits() {
 		for (IMeritEvaluator evaluator : evaluators) {
-			System.out.println(evaluator.getClass().getName() + " \tmerit = " + merits.get(evaluator));
+			System.out.println(evaluator.toString());
+			System.out.println("\tmerit = " + merits.get(evaluator));
 		}
 		System.out.println();
 	}

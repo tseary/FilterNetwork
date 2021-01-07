@@ -2,36 +2,36 @@ package circuits;
 
 public class Inductor extends Reactance {
 	
-	private double l;
+	private double ind;
 	
 	public Inductor(double l) {
-		this.l = l;
+		this.ind = l;
 	}
 	
 	public double getInductance() {
-		return l;
+		return ind;
 	}
 	
 	@Override
 	public void tweak(double factor) {
-		l *= factor;
+		ind *= factor;
 		lastTweak = factor;
 	}
 	
 	@Override
 	public void unTweak() {
-		l /= lastTweak;
+		ind /= lastTweak;
 	}
 	
 	@Override
 	public double getIm() {
-		return getOmega() * l;
+		return getOmega() * ind;
 	}
 	
 	@Override
 	public String toString() {
 		String desStr = String.format("L%1$d ", designator);
-		String valStr = "";
+		/*String valStr = "";
 		if (l >= 1d) {
 			valStr = String.format("%1$.3f H", l);
 		} else if (l >= 1e-3) {
@@ -42,7 +42,7 @@ public class Inductor extends Reactance {
 			valStr = String.format("%1$.3f nH", l / 1e-9);
 		} else {
 			valStr = String.format("%1$.3f pH", l / 1e-12);
-		}
-		return desStr + valStr + " inductor";
+		}*/
+		return desStr + niceUnitString(ind) + "H inductor";
 	}
 }

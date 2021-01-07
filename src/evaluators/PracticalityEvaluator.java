@@ -1,4 +1,4 @@
-package merit;
+package evaluators;
 
 import java.util.List;
 

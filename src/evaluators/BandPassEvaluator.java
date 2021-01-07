@@ -1,10 +1,10 @@
-package merit;
+package evaluators;
 
 import filter.AnalysisResult;
 import filter.Network;
 import filter.TestCondition;
 
-public class BandStopEvaluator implements IMeritEvaluator {
+public class BandPassEvaluator implements IMeritEvaluator {
 	
 	private TestCondition testCondition;
 	
@@ -13,7 +13,7 @@ public class BandStopEvaluator implements IMeritEvaluator {
 	 * @param centerFrequency
 	 * @param load
 	 */
-	public BandStopEvaluator(TestCondition testCondition) {
+	public BandPassEvaluator(TestCondition testCondition) {
 		this.testCondition = testCondition;
 	}
 	
@@ -23,8 +23,8 @@ public class BandStopEvaluator implements IMeritEvaluator {
 		AnalysisResult result;
 		
 		result = network.analyse(testCondition);
-		double stopGain = result.getGainDecibels();
+		double passGain = result.getGainDecibels();
 		
-		return MeritFunctions.sigmoid(stopGain, 0d, -20d);	// -20 dB difference nominal
+		return MeritFunctions.sigmoid(passGain, -20d, 0d);	// 0 dB nominal, -20 dB is bad.
 	}
 }

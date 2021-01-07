@@ -29,4 +29,13 @@ public class TestCondition {
 	public double getFrequency() {
 		return frequency;
 	}
+	
+	@Override
+	public String toString() {
+		String lineStr = line != null ? "line=" + line.toString() + ", " : "",
+				loadStr = load != null ? "load=" + load.toString() + ", " : "";
+		return this.getClass().getSimpleName() +
+				"[" + lineStr + loadStr +
+				"f=" + Impedance.niceUnitString(frequency) + "Hz]";
+	}
 }

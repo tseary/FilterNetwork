@@ -21,6 +21,6 @@ public class Resistor extends Impedance {
 	@Override
 	public String toString() {
 		String desStr = String.format("R%1$d ", designator);
-		return desStr + getRe() + " Ohm resistor";
+		return desStr + niceUnitString(getRe()) + "Ohm resistor";
 	}
 }
